@@ -3,3 +3,4 @@ requests==2.31.0
 python-nmap==0.7.1
 dnspython==2.4.2
 gradio==3.36.0
+setuptools==65.5.0

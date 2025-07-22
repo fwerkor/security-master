@@ -1,5 +1,19 @@
-from flask import Flask, render_template, request, jsonify
+import os
+from flask import Flask
 from modules.module_loader import load_modules
+
+def create_app():
+    """创建并配置Flask应用"""
+    app = Flask(__name__)
+    
+    # 加载安全模块
+    load_modules(app)
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run()
 
 """
 Flask Web服务主程序
