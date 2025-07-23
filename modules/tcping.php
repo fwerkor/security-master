@@ -30,8 +30,12 @@ function executeModule($params) {
         if ($fp) {
             fclose($fp);
             echo "TCPing $i: 连接成功 - 耗时 {$time}ms\n";
+            flush();
+            ob_flush();
         } else {
             echo "TCPing $i: 连接失败 - {$errstr} ({$errno})\n";
+            flush();
+            ob_flush();
         }
         
         // 添加间隔
