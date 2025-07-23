@@ -1,50 +1,57 @@
-"""
-TCPing网络诊断工具
-"""
 import socket
 import time
-import gradio as gr
 
-name = "TCPing"
-description = "TCP端口连通性检测工具，可用于检测服务是否在线"
+def title():
+    return "TCPing工具"
 
-def get_ui():
-    """创建TCPing工具的UI界面"""
-    with gr.Row():
-        host = gr.Textbox(label="目标地址", placeholder="输入IP地址或域名")
-        port = gr.Number(label="端口号", value=80, minimum=1, maximum=65535)
-        timeout = gr.Number(label="超时时间 (秒)", value=3, minimum=1, maximum=30)
-    return gr.Group([host, port, timeout])
+def get_form():
+    return '''
+    <div class="form-group">
+        <label for="host">目标主机:</label>
+        <input type="text" class="form-control" id="host" placeholder="输入IP地址或域名">
+    </div>
+    <div class="form-group">
+        <label for="port">端口号:</label>
+        <input type="number" class="form-control" id="port" value="80" min="1" max="65535">
+    </div>
+    <div class="form-group">
+        <label for="count">连接次数:</label>
+        <input type="number" class="form-control" id="count" value="4" min="1">
+    </div>
+    <div class="form-group">
+        <label for="timeout">超时时间 (秒):</label>
+        <input type="number" class="form-control" id="timeout" value="3" min="1" step="0.1">
+    </div>
+    '''
 
-
-def run(host, port, timeout):
-    """执行TCPing操作"""
-    if not host:
-        return "错误：必须输入目标地址"
+def run(args):
+    host = args.get('host')
+    port = int(args.get('port', 80))
+    count = int(args.get('count', 4))
+    timeout = float(args.get('timeout', 3))
     
-    try:
-        # 创建socket连接
+    if not host:
+        raise ValueError("必须提供主机地址")
+    
+    results = []
+    for i in range(count):
         start_time = time.time()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(timeout)
-        
-        # 连接目标
-        sock.connect((host, int(port)))
-        end_time = time.time()
-        
-        # 关闭连接
-        sock.close()
-        
-        # 计算延迟
-        latency = (end_time - start_time) * 1000  # 转换为毫秒
-        
-        return f"成功连接到 {host}:{port}\n连接时间：{latency:.2f} ms"
-        
-    except socket.timeout:
-        return f"错误：连接超时（超过{timeout}秒）"
-    except socket.gaierror:
-        return "错误：无法解析域名"
-    except ConnectionRefusedError:
-        return f"错误：连接被拒绝（端口 {port} 可能未开放）"
-    except Exception as e:
-        return f"执行错误：{str(e)}"
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            result = sock.connect_ex((host, port))
+            end_time = time.time()
+            sock.close()
+            
+            elapsed = (end_time - start_time) * 1000  # 转换为毫秒
+            
+            if result == 0:
+                results.append(f"连接 {i+1}: 成功 - 耗时 {elapsed:.2f} ms")
+            else:
+                results.append(f"连接 {i+1}: 失败 - 错误码 {result}")
+        except Exception as e:
+            end_time = time.time()
+            elapsed = (end_time - start_time) * 1000
+            results.append(f"连接 {i+1}: 错误 - {str(e)} - 耗时 {elapsed:.2f} ms")
+    
+    return "\n".join(results)
