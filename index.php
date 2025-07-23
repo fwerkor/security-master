@@ -25,6 +25,18 @@ function getModules() {
 // 获取当前请求的模块
 $module = isset($_GET['module']) ? $_GET['module'] : null;
 
+if (isset($_GET['module'])) {
+    $module = $_GET['module'];
+    $function = $module . '_parameters';
+
+    if (function_exists($function)) {
+        echo $function();
+    } else {
+        echo "Parameters function for $module not found.";
+    }
+    exit;
+}
+
 // 如果请求特定模块且模块存在
 if ($module && in_array($module, getModules())) {
     // 设置模块文件路径
@@ -36,4 +48,39 @@ if ($module && in_array($module, getModules())) {
     // 否则显示主页
     include 'templates/index.html.php';
 }
+
+if (isset($_GET['action']) && $_GET['action'] === 'start') {
+    header('Content-Type: text/event-stream');
+    header('Cache-Control: no-cache');
+
+    $module = $_GET['module'];
+    $function = $module . '_execute';
+
+    if (function_exists($function)) {
+        // Register a shutdown function to handle task termination
+        register_shutdown_function(function() use ($function) {
+            $function($_GET, true);
+        });
+
+        $output = $function($_GET, false);
+        echo $output;
+    } else {
+        echo "Execute function for $module not found.";
+    }
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'stop') {
+    // Handle task termination
+    $module = $_GET['module'];
+    $function = $module . '_stop';
+
+    if (function_exists($function)) {
+        $function($_GET);
+    } else {
+        echo "Stop function for $module not found.";
+    }
+    exit;
+}
+
 ?>
