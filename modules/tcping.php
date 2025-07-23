@@ -4,7 +4,7 @@
  */
 
 function executeModule($params) {
-    $target = $params['target'] ?? '';
+    $target = escapeshellarg($params['target'] ?? '');
     $port = intval($params['port'] ?? 80);
     $count = intval($params['count'] ?? 4);
     $timeout = intval($params['timeout'] ?? 3);
@@ -17,20 +17,19 @@ function executeModule($params) {
         return "错误: 端口号必须在1-65535之间";
     }
     
+    // 使用nc (netcat) 或 telnet 进行TCP连接测试
     $results = [];
-    $results[] = "正在测试 {$target}:{$port} 的TCP连接...";
-    
     for ($i = 1; $i <= $count; $i++) {
         $start = microtime(true);
         
         // 使用fsockopen进行TCP连接测试
-        $socket = @fsockopen($target, $port, $errno, $errstr, $timeout);
+        $fp = @fsockopen(str_replace(['"', "'"], '', $params['target']), $port, $errno, $errstr, $timeout);
         $end = microtime(true);
         
         $time = round(($end - $start) * 1000, 2);
         
-        if ($socket) {
-            fclose($socket);
+        if ($fp) {
+            fclose($fp);
             $results[] = "TCPing $i: 连接成功 - 耗时 {$time}ms";
         } else {
             $results[] = "TCPing $i: 连接失败 - {$errstr} ({$errno})";
@@ -38,7 +37,7 @@ function executeModule($params) {
         
         // 添加间隔
         if ($i < $count) {
-            usleep(1000000); // 1秒间隔
+            sleep(1);
         }
     }
     

@@ -21,8 +21,6 @@
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
             padding: 1.5rem;
             margin-top: 1rem;
-            max-height: 400px;
-            overflow-y: auto;
         }
         .form-container {
             background-color: #fff;
@@ -36,7 +34,6 @@
             border-radius: 0.5rem;
             max-height: 400px;
             overflow: auto;
-            margin-bottom: 0;
         }
     </style>
 </head>
@@ -70,14 +67,21 @@
             </div>
         </div>
         
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
         <div class="row">
             <div class="col-12">
                 <div class="result-container">
                     <h3>执行结果</h3>
-                    <pre id="stream-output"></pre>
+                    <?php
+                    if (function_exists('executeModule')) {
+                        $result = executeModule($_POST);
+                        echo '<pre>' . htmlspecialchars($result) . '</pre>';
+                    }
+                    ?>
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <footer class="bg-light py-4 mt-5">
@@ -89,29 +93,6 @@
             </div>
         </div>
     </footer>
-
-    <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
-    <script>
-        // 收集表单数据并创建查询字符串
-        const form = document.querySelector('form');
-        const formData = new FormData(form);
-        let params = new URLSearchParams();
-        
-        // 添加所有表单字段到参数
-        for (let [key, value] of formData.entries()) {
-            params.append(key, value);
-        }
-        
-        // 使用EventSource实现实时流式输出
-        const source = new EventSource("stream.php?module=<?= urlencode($module) ?>&" + params.toString());
-        
-        source.onmessage = function(event) {
-            const output = document.getElementById('stream-output');
-            output.textContent += event.data + "\n";
-            output.scrollTop = output.scrollHeight;
-        };
-    </script>
-    <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

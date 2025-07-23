@@ -4,7 +4,7 @@
  */
 
 function executeModule($params) {
-    $target = $params['target'] ?? '';
+    $target = escapeshellarg($params['target'] ?? '');
     $port = intval($params['port'] ?? 80);
     $threads = intval($params['threads'] ?? 10);
     $timeout = intval($params['timeout'] ?? 5);
@@ -22,28 +22,27 @@ function executeModule($params) {
     }
     
     // 仅为演示目的，实际的DDoS功能不会实现
-    $results = [];
-    $results[] = "DDoS测试模拟";
-    $results[] = "===============";
-    $results[] = "目标: " . $target;
-    $results[] = "端口: $port";
-    $results[] = "线程数: $threads";
-    $results[] = "超时: {$timeout}秒";
-    $results[] = "";
-    $results[] = "注意: 此工具仅用于演示目的，不执行实际的DDoS攻击。";
-    $results[] = "实际的DDoS攻击是违法行为，仅在授权的网络测试环境中使用类似工具。";
-    $results[] = "";
+    $output = [];
+    $output[] = "DDoS测试模拟";
+    $output[] = "===============";
+    $output[] = "目标: " . str_replace(['"', "'"], '', $params['target']);
+    $output[] = "端口: $port";
+    $output[] = "线程数: $threads";
+    $output[] = "超时: {$timeout}秒";
+    $output[] = "";
+    $output[] = "注意: 此工具仅用于演示目的，不执行实际的DDoS攻击。";
+    $output[] = "实际的DDoS攻击是违法行为，仅在授权的网络测试环境中使用类似工具。";
+    $output[] = "";
     
     // 模拟发送请求
     for ($i = 1; $i <= min($threads, 10); $i++) {
-        $results[] = "线程 $i: 发送请求到目标...";
-        usleep(500000); // 0.5秒间隔
+        $output[] = "线程 $i: 发送请求到目标...";
     }
     
-    $results[] = "";
-    $results[] = "测试完成。";
+    $output[] = "";
+    $output[] = "测试完成。";
     
-    return implode("\n", $results);
+    return implode("\n", $output);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST'):
