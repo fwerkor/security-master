@@ -1,30 +1,4 @@
 <?php
-require_once 'task.php';
-
-if(isset($_POST['module'])) {
-    $module = $_POST['module'];
-    $taskManager = new TaskManager();
-    $taskId = $taskManager->startTask($module, $_POST);
-    echo json_encode(['taskId' => $taskId]);
-    exit;
-}
-
-if(isset($_GET['taskStatus'])) {
-    $taskId = $_GET['taskStatus'];
-    $taskManager = new TaskManager();
-    $status = $taskManager->getTaskStatus($taskId);
-    echo json_encode($status);
-    exit;
-}
-
-if(isset($_GET['stopTask'])) {
-    $taskId = $_GET['stopTask'];
-    $taskManager = new TaskManager();
-    $taskManager->stopTask($taskId);
-    echo json_encode(['success' => true]);
-    exit;
-}
-
 // 主入口文件
 session_start();
 

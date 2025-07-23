@@ -1,0 +1,5 @@
+PHP Fatal error:  Uncaught Error: Class "TaskManager" not found in /root/project/security-master/modules/ping.php:60
+Stack trace:
+#0 /root/project/security-master/modules/ping.php(68): isTerminated()
+#1 {main}
+  thrown in /root/project/security-master/modules/ping.php on line 60

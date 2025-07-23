@@ -1,0 +1,69 @@
+PHP Warning:  Undefined array key "REQUEST_METHOD" in /root/project/security-master/modules/ping.php on line 48
+<h3>Ping 工具</h3>
+<p>测试网络连通性，支持IPv4/IPv6和自定义数据包大小</p>
+
+<form method="POST">
+    <div class="mb-3">
+        <label for="target" class="form-label">目标主机:</label>
+        <input type="text" class="form-control" id="target" name="target" placeholder="example.com 或 IP地址" required>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="count" class="form-label">Ping次数:</label>
+                <input type="number" class="form-control" id="count" name="count" min="1" max="100" value="4">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="size" class="form-label">数据包大小 (bytes):</label>
+                <input type="number" class="form-control" id="size" name="size" min="0" max="65507" value="56">
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="ipv6" name="ipv6">
+        <label class="form-check-label" for="ipv6">使用IPv6</label>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">执行Ping</button>
+</form>
+
+// 类似ddos.php的修改，添加任务ID支持
+$taskId = $argv[1] ?? null;
+if(!$taskId) {
+    die("请通过任务管理器启动");
+}
+
+// 修改输出方式
+function writeOutput($message) {
+    echo $message;
+    flush(); // 立即刷新输出
+}
+
+// 检查终止信号
+function isTerminated($taskId) {
+    $taskManager = new TaskManager();
+    return $taskManager->isTaskStopped($taskId);
+}
+
+// 原有代码需要修改执行逻辑
+$target = $_POST['target'] ?? '127.0.0.1';
+$pingCount = 0;
+
+while(!isTerminated($taskId)) {
+    $output = shell_exec("ping -c 1 $target");
+    $result = "Ping $target: " . ($output ? "成功\n" : "失败\n");
+    writeOutput($result);
+    
+    if($pingCount++ > 10) {
+        break;
+    }
+    
+    sleep(1);
+}
+
+// 退出前确保输出完成
+flush();
