@@ -70,7 +70,6 @@
             </div>
         </div>
         
-        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
         <div class="row">
             <div class="col-12">
                 <div class="result-container">
@@ -79,7 +78,6 @@
                 </div>
             </div>
         </div>
-        <?php endif; ?>
     </div>
 
     <footer class="bg-light py-4 mt-5">
@@ -94,8 +92,18 @@
 
     <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
     <script>
+        // 收集表单数据并创建查询字符串
+        const form = document.querySelector('form');
+        const formData = new FormData(form);
+        let params = new URLSearchParams();
+        
+        // 添加所有表单字段到参数
+        for (let [key, value] of formData.entries()) {
+            params.append(key, value);
+        }
+        
         // 使用EventSource实现实时流式输出
-        const source = new EventSource("stream.php?module=<?= urlencode($module) ?>");
+        const source = new EventSource("stream.php?module=<?= urlencode($module) ?>&" + params.toString());
         
         source.onmessage = function(event) {
             const output = document.getElementById('stream-output');

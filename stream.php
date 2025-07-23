@@ -22,10 +22,15 @@ if (!file_exists($moduleFile)) {
 // 包含模块文件
 include $moduleFile;
 
-// 检查是否提供了POST数据
-if (isset($_POST['target'])) {
+// 解析查询参数为POST数据
+parse_str($_SERVER['QUERY_STRING'], $params);
+$params = array_filter($params, function($key) {
+    return !in_array($key, ['module']);
+}, ARRAY_FILTER_USE_KEY);
+
+// 检查是否提供了必要的参数
+if (isset($params['target'])) {
     // 模拟流式处理过程
-    $params = $_POST;
     
     // 使用模块中的executeModule函数
     if (function_exists('executeModule')) {
