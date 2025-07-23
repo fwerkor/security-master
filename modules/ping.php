@@ -4,10 +4,10 @@
  */
 
 function executeModule($params) {
-    $target = escapeshellarg($params['target'] ?? '');
+    $target = $params['target'] ?? '';
     $count = intval($params['count'] ?? 4);
     $size = intval($params['size'] ?? 56);
-    $ipv6 = isset($params['ipv6']) ? '-6' : '';
+    $ipv6 = isset($params['ipv6']) ? true : false;
     
     if (empty($target)) {
         return "错误: 请提供目标主机";
@@ -16,8 +16,33 @@ function executeModule($params) {
     // 限制包大小以防止滥用
     $size = min($size, 65507);
     
-    $command = "ping $ipv6 -c $count -s $size $target 2>&1";
-    return shell_exec($command);
+    $results = [];
+    $results[] = "正在测试与 {$target} 的连接...";
+    
+    for ($i = 1; $i <= $count; $i++) {
+        $start = microtime(true);
+        
+        // 使用fsockopen进行连接测试
+        $port = $ipv6 ? 80 : 80; // 使用默认端口80进行测试
+        $socket = @fsockopen($target, $port, $errno, $errstr, 5);
+        $end = microtime(true);
+        
+        $time = round(($end - $start) * 1000, 2);
+        
+        if ($socket) {
+            fclose($socket);
+            $results[] = "Ping $i: 连接成功 - 耗时 {$time}ms";
+        } else {
+            $results[] = "Ping $i: 连接失败 - {$errstr} ({$errno})";
+        }
+        
+        // 添加间隔
+        if ($i < $count) {
+            usleep(1000000); // 1秒间隔
+        }
+    }
+    
+    return implode("\n", $results);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST'):
