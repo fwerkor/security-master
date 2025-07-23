@@ -57,11 +57,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'start') {
     $function = $module . '_execute';
 
     if (function_exists($function)) {
-        // Register a shutdown function to handle task termination
-        register_shutdown_function(function() use ($function) {
-            $function($_GET, true);
-        });
-
         $output = $function($_GET, false);
         echo $output;
     } else {
