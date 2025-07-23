@@ -88,3 +88,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST'):
     <button type="submit" class="btn btn-danger">开始模拟测试</button>
 </form>
 <?php endif; ?>
+
+// 获取任务ID
+$taskId = $argv[1] ?? null;
+if(!$taskId) {
+    die("请通过任务管理器启动");
+}
+
+// 修改输出方式
+function writeOutput($message) {
+    echo $message;
+    flush(); // 立即刷新输出
+}
+
+// 检查终止信号
+function isTerminated($taskId) {
+    $taskManager = new TaskManager();
+    return $taskManager->isTaskStopped($taskId);
+}
+
+// 原有代码需要修改执行逻辑，示例：
+for($i=0; $i<100; $i++) {
+    if(isTerminated($taskId)) {
+        writeOutput("任务已终止");
+        exit;
+    }
+    
+    // 原有执行逻辑
+    writeOutput("执行步骤 $i\n");
+    sleep(1);
+}
