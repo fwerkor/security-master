@@ -1,39 +1,79 @@
 <?php
-// 主入口文件
-session_start();
+/**
+ * @description 安全测试平台入口文件
+ */
 
-// 自动加载模块
-function getModules() {
-    $modules = [];
-    $modulesDir = __DIR__ . '/modules';
+define('APP_DIR', __DIR__);
+
+// 任务管理路由
+if (isset($_GET['task'])) {
+    $taskId = $_GET['task_id'] ?? uniqid();
     
-    if (is_dir($modulesDir)) {
-        if ($handle = opendir($modulesDir)) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($entry != "." && $entry != ".." && pathinfo($entry, PATHINFO_EXTENSION) == 'php') {
-                    $moduleName = pathinfo($entry, PATHINFO_FILENAME);
-                    $modules[] = $moduleName;
-                }
-            }
-            closedir($handle);
+    if ($_GET['task'] == 'start') {
+        $module = $_POST['module'] ?? '';
+        $params = $_POST['params'] ?? [];
+        
+        if (empty($module) || !file_exists("modules/{$module}.php")) {
+            http_response_code(400);
+            echo json_encode(["error" => "无效的模块"]); exit;
+        }
+        
+        // 异步执行任务
+        $pid = pcntl_fork();
+        
+        if ($pid == -1) {
+            http_response_code(500);
+            echo json_encode(["error" => "无法创建进程"]); exit;
+        } elseif ($pid == 0) {
+            // 子进程
+            require_once "modules/{$module}.php";
+            executeModule($params, $taskId);
+            exit;
+        } else {
+            // 父进程
+            echo json_encode(["task_id" => $taskId]); exit;
         }
     }
     
-    return $modules;
-}
-
-// 获取当前请求的模块
-$module = isset($_GET['module']) ? $_GET['module'] : null;
-
-// 如果请求特定模块且模块存在
-if ($module && in_array($module, getModules())) {
-    // 设置模块文件路径
-    $moduleFile = __DIR__ . '/modules/' . $module . '.php';
+    elseif ($_GET['task'] == 'progress') {
+        $module = $_GET['module'] ?? '';
+        if (!file_exists("modules/{$module}.php")) {
+            http_response_code(400);
+            echo json_encode(["error" => "无效的模块"]); exit;
+        }
+        
+        require_once "modules/{$module}.php";
+        $progress = getProgress($taskId);
+        $running = isTaskRunning($taskId);
+        
+        echo json_encode([
+            "running" => $running,
+            "progress" => $progress
+        ]);
+        exit;
+    }
     
-    // 将模块文件路径传递给模板
-    include 'templates/module.html.php';
-} else {
-    // 否则显示主页
-    include 'templates/index.html.php';
+    elseif ($_GET['task'] == 'stop') {
+        $module = $_GET['module'] ?? '';
+        if (!file_exists("modules/{$module}.php")) {
+            http_response_code(400);
+            echo json_encode(["error" => "无效的模块"]); exit;
+        }
+        
+        require_once "modules/{$module}.php";
+        stopTask($taskId);
+        echo json_encode(["success" => true]);
+        exit;
+    }
 }
-?>
+
+// 常规请求处理
+$template = "templates/index.html.php";
+if (isset($_GET['module'])) {
+    $module = $_GET['module'];
+    if (file_exists("templates/module.{$module}.php")) {
+        $template = "templates/module.{$module}.php";
+    }
+}
+
+require_once $template;
