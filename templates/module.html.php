@@ -21,6 +21,8 @@
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
             padding: 1.5rem;
             margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
         }
         .form-container {
             background-color: #fff;
@@ -34,6 +36,7 @@
             border-radius: 0.5rem;
             max-height: 400px;
             overflow: auto;
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -72,12 +75,7 @@
             <div class="col-12">
                 <div class="result-container">
                     <h3>执行结果</h3>
-                    <?php
-                    if (function_exists('executeModule')) {
-                        $result = executeModule($_POST);
-                        echo '<pre>' . htmlspecialchars($result) . '</pre>';
-                    }
-                    ?>
+                    <pre id="stream-output"></pre>
                 </div>
             </div>
         </div>
@@ -93,6 +91,19 @@
             </div>
         </div>
     </footer>
+
+    <?php if ($_SERVER['REQUEST_METHOD'] === 'POST'): ?>
+    <script>
+        // 使用EventSource实现实时流式输出
+        const source = new EventSource("stream.php?module=<?= urlencode($module) ?>");
+        
+        source.onmessage = function(event) {
+            const output = document.getElementById('stream-output');
+            output.textContent += event.data + "\n";
+            output.scrollTop = output.scrollHeight;
+        };
+    </script>
+    <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
