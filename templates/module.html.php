@@ -75,7 +75,7 @@
                     <?php
                     if (function_exists('executeModule')) {
                         $result = executeModule($_POST);
-                        echo '<pre>' . htmlspecialchars($result) . '</pre>';
+                        echo '<pre>' . htmlspecialchars($result ?? '') . '</pre>'; // 修复 htmlspecialchars(null) 弃用问题
                     }
                     ?>
                 </div>
