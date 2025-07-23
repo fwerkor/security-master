@@ -75,8 +75,7 @@
                     <?php
                     if (function_exists('executeModule')) {
                         $result = executeModule($_POST);
-                        echo '<pre>' . htmlspecialchars($result ?? '') . '</pre>'; // 修复 htmlspecialchars(null) 弃用问题
-                        echo '<style>pre { white-space: pre-wrap; word-wrap: break-word; }</style>'; // 确保换行显示
+                        echo '<pre>' . htmlspecialchars($result) . '</pre>';
                     }
                     ?>
                 </div>
