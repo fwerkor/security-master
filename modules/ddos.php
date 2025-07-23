@@ -1,4 +1,8 @@
 <?php
+/**
+ * @description DDoS测试工具（仅供合法测试使用）
+ */
+
 function executeModule($params) {
     $target = escapeshellarg($params['target'] ?? '');
     $port = intval($params['port'] ?? 80);

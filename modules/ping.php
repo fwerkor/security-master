@@ -1,4 +1,8 @@
 <?php
+/**
+ * @description 网络连通性测试工具，支持IPv4/IPv6和自定义包大小
+ */
+
 function executeModule($params) {
     $target = escapeshellarg($params['target'] ?? '');
     $count = intval($params['count'] ?? 4);

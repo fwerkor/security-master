@@ -51,14 +51,30 @@
         </div>
 
         <div class="row">
-            <?php foreach (getModules() as $mod): ?>
+            <?php 
+            // 从modules目录读取模块信息
+            $modulesDir = __DIR__ . '/../modules';
+            $moduleFiles = glob($modulesDir . '/*.php');
+            
+            if ($moduleFiles) {
+                foreach ($moduleFiles as $moduleFile) {
+                    $moduleName = pathinfo($moduleFile, PATHINFO_FILENAME);
+                    $moduleDescription = '';
+                    
+                    // 读取模块文件中的描述信息
+                    $moduleContent = file_get_contents($moduleFile);
+                    preg_match('/@description\s+(.*)/', $moduleContent, $matches);
+                    if (isset($matches[1])) {
+                        $moduleDescription = $matches[1];
+                    }
+            ?>
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="tool-icon">
                             <?php 
                             // 根据工具名称显示不同图标
-                            switch($mod) {
+                            switch($moduleName) {
                                 case 'ping':
                                     echo '📡';
                                     break;
@@ -73,39 +89,25 @@
                             }
                             ?>
                         </div>
-                        <h5 class="card-title"><?= ucfirst($mod) ?></h5>
+                        <h5 class="card-title"><?= ucfirst($moduleName) ?></h5>
                         <p class="card-text">
-                            <?php
-                            // 根据工具名称显示描述
-                            switch($mod) {
-                                case 'ping':
-                                    echo '网络连通性测试工具，支持IPv4/IPv6和自定义包大小';
-                                    break;
-                                case 'tcping':
-                                    echo 'TCP端口连通性测试工具';
-                                    break;
-                                case 'ddos':
-                                    echo 'DDoS测试工具（仅供合法测试使用）';
-                                    break;
-                                default:
-                                    echo '网络安全测试工具';
-                            }
-                            ?>
+                            <?= $moduleDescription ?: '网络安全测试工具' ?>
                         </p>
-                        <a href="?module=<?= $mod ?>" class="btn btn-primary">使用工具</a>
+                        <a href="?module=<?= $moduleName ?>" class="btn btn-primary">使用工具</a>
                     </div>
                 </div>
             </div>
-            <?php endforeach; ?>
-            
-            <?php if (empty(getModules())): ?>
+            <?php 
+                }
+            } else {
+            ?>
             <div class="col-12">
                 <div class="alert alert-info text-center">
                     <h4>暂无工具</h4>
                     <p>请在 <code>modules</code> 目录下添加工具模块</p>
                 </div>
             </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 

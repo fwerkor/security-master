@@ -54,7 +54,10 @@
             <div class="col-12">
                 <div class="form-container">
                     <?php
-                    if (isset($moduleFile) && file_exists($moduleFile)) {
+                    // 从modules目录加载模块
+                    $moduleFile = __DIR__ . '/../modules/' . $module . '.php';
+                    
+                    if (file_exists($moduleFile)) {
                         include $moduleFile;
                     } else {
                         echo '<div class="alert alert-danger">模块文件不存在</div>';

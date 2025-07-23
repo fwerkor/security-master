@@ -1,4 +1,8 @@
 <?php
+/**
+ * @description TCP端口连通性测试工具
+ */
+
 function executeModule($params) {
     $target = escapeshellarg($params['target'] ?? '');
     $port = intval($params['port'] ?? 80);
