@@ -79,3 +79,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST'):
     <button type="submit" class="btn btn-primary">执行Ping</button>
 </form>
 <?php endif; ?>
+
+// 模拟逐步输出的 ping 模块
+function ping($host, $count = 4) {
+    for ($i = 1; $i <= $count; $i++) {
+        // 模拟每次 ping 的结果
+        $result = "Ping {$host} - {$i} packets transmitted, {$i} packets received.";
+        echo $result . "<br>";
+        
+        // 实时刷新输出
+        ob_flush();
+        flush();
+        
+        // 模拟延迟
+        sleep(1);
+    }
+}
+
+// 示例调用
+if (isset($_GET['host'])) {
+    ping($_GET['host']);
+}

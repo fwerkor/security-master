@@ -36,4 +36,34 @@ if ($module && in_array($module, getModules())) {
     // 否则显示主页
     include 'templates/index.html.php';
 }
+
+// 开启输出缓冲
+ob_start();
+
+// 加载模块
+$module = isset($_GET['module']) ? $_GET['module'] : 'index';
+$moduleFile = "modules/{$module}.php";
+
+if (file_exists($moduleFile)) {
+    // 引入模块并执行
+    require $moduleFile;
+    
+    // 实时输出结果
+    ob_flush();
+    flush();
+} else {
+    echo "Module not found.";
+}
+
+// 渲染模板
+$template = "templates/{$module}.html.php";
+if (file_exists($template)) {
+    require $template;
+} else {
+    echo "Template not found.";
+}
+
+// 最终刷新输出
+ob_end_flush();
+
 ?>
