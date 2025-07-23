@@ -18,7 +18,6 @@ function executeModule($params) {
     }
     
     // 使用nc (netcat) 或 telnet 进行TCP连接测试
-    $results = [];
     for ($i = 1; $i <= $count; $i++) {
         $start = microtime(true);
         
@@ -30,9 +29,9 @@ function executeModule($params) {
         
         if ($fp) {
             fclose($fp);
-            $results[] = "TCPing $i: 连接成功 - 耗时 {$time}ms";
+            echo "TCPing $i: 连接成功 - 耗时 {$time}ms\n";
         } else {
-            $results[] = "TCPing $i: 连接失败 - {$errstr} ({$errno})";
+            echo "TCPing $i: 连接失败 - {$errstr} ({$errno})\n";
         }
         
         // 添加间隔
@@ -40,8 +39,6 @@ function executeModule($params) {
             sleep(1);
         }
     }
-    
-    return implode("\n", $results);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST'):
