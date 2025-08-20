@@ -1,85 +1,72 @@
 <?php
 /**
- * @description TCP端口连通性测试工具
+ * TCP Ping工具模块
+ * 支持指定端口和超时时间
  */
 
-function executeModule($params) {
-    $target = escapeshellarg($params['target'] ?? '');
-    $port = intval($params['port'] ?? 80);
-    $count = intval($params['count'] ?? 4);
-    $timeout = intval($params['timeout'] ?? 3);
-    
-    if (empty($target)) {
-        return "错误: 请提供目标主机";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $host = $_POST['host'] ?? '';
+    $port = $_POST['port'] ?? 80;
+    $timeout = $_POST['timeout'] ?? 5;
+
+    if (empty($host)) {
+        echo json_encode(['error' => '请输入目标主机']);
+        exit;
     }
-    
-    if ($port <= 0 || $port > 65535) {
-        return "错误: 端口号必须在1-65535之间";
+
+    $start = microtime(true);
+    $fp = @fsockopen($host, $port, $errno, $errstr, $timeout);
+    $end = microtime(true);
+
+    if ($fp) {
+        fclose($fp);
+        $latency = round(($end - $start) * 1000, 2);
+        echo json_encode(['output' => "TCP Ping成功: {$latency}ms"]);
+    } else {
+        echo json_encode(['error' => "TCP Ping失败: $errstr ($errno)"]);
     }
-    
-    // 使用nc (netcat) 或 telnet 进行TCP连接测试
-    $results = [];
-    for ($i = 1; $i <= $count; $i++) {
-        $start = microtime(true);
-        
-        // 使用fsockopen进行TCP连接测试
-        $fp = @fsockopen(str_replace(['"', "'"], '', $params['target']), $port, $errno, $errstr, $timeout);
-        $end = microtime(true);
-        
-        $time = round(($end - $start) * 1000, 2);
-        
-        if ($fp) {
-            fclose($fp);
-            $results[] = "TCPing $i: 连接成功 - 耗时 {$time}ms";
-        } else {
-            $results[] = "TCPing $i: 连接失败 - {$errstr} ({$errno})";
-        }
-        
-        // 添加间隔
-        if ($i < $count) {
-            sleep(1);
-        }
-    }
-    
-    return implode("\n", $results);
+    exit;
 }
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST'):
 ?>
-<h3>TCPing 工具</h3>
-<p>测试指定主机的TCP端口连通性</p>
 
-<form method="POST">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="mb-3">
-                <label for="target" class="form-label">目标主机:</label>
-                <input type="text" class="form-control" id="target" name="target" placeholder="example.com 或 IP地址" required>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="mb-3">
-                <label for="port" class="form-label">端口号:</label>
-                <input type="number" class="form-control" id="port" name="port" min="1" max="65535" value="80" required>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TCP Ping工具</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>TCP Ping工具</h1>
+        <form id="tcping-form">
+            <label for="host">目标主机:</label>
+            <input type="text" id="host" name="host" required>
+
+            <label for="port">端口:</label>
+            <input type="number" id="port" name="port" min="1" max="65535" value="80">
+
+            <label for="timeout">超时时间 (秒):</label>
+            <input type="number" id="timeout" name="timeout" min="1" max="30" value="5">
+
+            <button type="submit">执行TCP Ping</button>
+        </form>
+        <div id="result"></div>
     </div>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <div class="mb-3">
-                <label for="count" class="form-label">测试次数:</label>
-                <input type="number" class="form-control" id="count" name="count" min="1" max="100" value="4">
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="mb-3">
-                <label for="timeout" class="form-label">超时时间 (秒):</label>
-                <input type="number" class="form-control" id="timeout" name="timeout" min="1" max="30" value="3">
-            </div>
-        </div>
-    </div>
-    
-    <button type="submit" class="btn btn-primary">执行TCPing</button>
-</form>
-<?php endif; ?>
+    <script>
+        document.getElementById('tcping-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = `<pre>${data.output || data.error}</pre>`;
+            });
+        });
+    </script>
+</body>
+</html>
