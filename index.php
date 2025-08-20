@@ -1,42 +1,39 @@
 <?php
-// 动态加载工具列表
-$toolsDir = 'modules/';
-$tools = [];
-if (is_dir($toolsDir)) {
-    if ($dh = opendir($toolsDir)) {
-        while (($file = readdir($dh)) !== false) {
-            if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                $tools[] = $file;
+// 主入口文件
+session_start();
+
+// 自动加载模块
+function getModules() {
+    $modules = [];
+    $modulesDir = __DIR__ . '/modules';
+    
+    if (is_dir($modulesDir)) {
+        if ($handle = opendir($modulesDir)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry != "." && $entry != ".." && pathinfo($entry, PATHINFO_EXTENSION) == 'php') {
+                    $moduleName = pathinfo($entry, PATHINFO_FILENAME);
+                    $modules[] = $moduleName;
+                }
             }
+            closedir($handle);
         }
-        closedir($dh);
     }
+    
+    return $modules;
+}
+
+// 获取当前请求的模块
+$module = isset($_GET['module']) ? $_GET['module'] : null;
+
+// 如果请求特定模块且模块存在
+if ($module && in_array($module, getModules())) {
+    // 设置模块文件路径
+    $moduleFile = __DIR__ . '/modules/' . $module . '.php';
+    
+    // 将模块文件路径传递给模板
+    include 'templates/module.html.php';
+} else {
+    // 否则显示主页
+    include 'templates/index.html.php';
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网络安全工具箱</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>网络安全工具箱</h1>
-            <p>一个简洁美观的网络安全工具集合</p>
-        </header>
-        <main>
-            <div class="tools-list" id="tools-list">
-                <?php foreach ($tools as $tool): ?>
-                    <div class="tool-card" onclick="window.location.href='modules/<?= $tool ?>'">
-                        <h2><?= pathinfo($tool, PATHINFO_FILENAME) ?></h2>
-                        <p>点击使用<?= pathinfo($tool, PATHINFO_FILENAME) ?>工具</p>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </main>
-    </div>
-</body>
-</html>

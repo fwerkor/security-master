@@ -1,0 +1,24 @@
+# 安全配置
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 阻止直接访问模块文件
+    RewriteRule ^modules/ - [F,L]
+    
+    # 阻止访问模板文件
+    RewriteRule ^templates/ - [F,L]
+</IfModule>
+
+# 隐藏PHP版本信息
+<IfModule mod_php7.c>
+    php_flag expose_php Off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag expose_php Off
+</IfModule>
+
+# 禁止访问敏感文件
+<Files ~ "^.*\.(inc|tpl|sql|log)">
+    Order allow,deny
+    Deny from all
+</Files>
